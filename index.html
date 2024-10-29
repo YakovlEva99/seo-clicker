@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Clicker Game</title>
+    <style>
+        /* Стили для страницы и элементов */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 300px;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #333;
+        }
+
+        .orb {
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, #ff7b00, #ff3b00);
+            border-radius: 50%;
+            margin: 20px auto;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 59, 0, 0.8);
+        }
+
+        .status {
+            font-size: 1.2em;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .leaderboard {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .leaderboard h2 {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .leaderboard p {
+            font-size: 1em;
+            color: #555;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SEO Magic Clicker</h1>
+        <p>Tap the magic orb to increase your SEO energy and rank up!</p>
+        
+        <!-- Магический шар -->
+        <div id="magicOrb" class="orb"></div>
+
+        <!-- Отображение энергии, уровня и позиции -->
+        <div class="status">
+            <p id="energyText">Energy: 0</p>
+            <p id="levelText">Level: 1</p>
+            <p id="positionText">Current Position: 100</p>
+        </div>
+
+        <!-- Кнопка улучшения -->
+        <button id="upgradeButton">Upgrade Power (Cost: 10)</button>
+
+        <!-- Лидерборд -->
+        <div class="leaderboard">
+            <h2>Leaderboard</h2>
+            <div id="leaderboardContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Переменные для игры
+        let energy = 0;
+        let level = 1;
+        let energyPerClick = 1;
+        let upgradeCost = 10;
+        let position = 100; // начальная позиция запроса (чем меньше, тем лучше)
+
+        // Элементы DOM
+        const energyText = document.getElementById("energyText");
+        const levelText = document.getElementById("levelText");
+        const positionText = document.getElementById("positionText");
+        const magicOrb = document.getElementById("magicOrb");
+        const upgradeButton = document.getElementById("upgradeButton");
+        const leaderboardContent = document.getElementById("leaderboardContent");
+
+        // Обновление отображения энергии
+        function updateEnergyDisplay() {
+            energyText.textContent = "Energy: " + energy;
+        }
+
+        // Обновление уровня и позиции
+        function updateLevelDisplay() {
+            levelText.textContent = "Level: " + level;
+            positionText.textContent = "Current Position: " + position;
+        }
+
+        // Загрузка лидерборда из localStorage
+        function loadLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+            leaderboardContent.innerHTML = leaderboard.map((entry, index) => 
+                `<p>${index + 1}. Level ${entry.level} - Position ${entry.position}</p>`
+            ).join('');
+        }
+
+        // Сохранение результата в лидерборде
+        function saveToLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+            leaderboard.push({ level, position });
+            leaderboard.sort((a, b) => a.position - b.position || b.level - a.level);
+            if (leaderboard.length > 5) leaderboard.pop(); // максимум 5 записей
+            localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+            loadLeaderboard();
+        }
+
+        // Обработка клика по магическому шару
+        magicOrb.addEventListener("click", () => {
+            energy += energyPerClick;
+            updateEnergyDisplay();
+
+            // Проверка на переход уровня
+            if (energy >= level * 20) {
+                levelUp();
+            }
+        });
+
+        // Повышение уровня
+        function levelUp() {
+            level++;
+            energy = 0; // сброс энергии на новом уровне
+            energyPerClick++; // увеличение силы кликов на уровне
+            upgradeCost += 10; // повышение стоимости улучшения
+            position = Math.max(1, position - 10); // улучшение позиции
+            upgradeButton.textContent = `Upgrade Power (Cost: ${upgradeCost})`;
+            updateEnergyDisplay();
+            updateLevelDisplay();
+            saveToLeaderboard(); // сохраняем результат в лидерборд
+        }
+
+        // Улучшение силы кликов
+        upgradeButton.addEventListener("click", () => {
+            if (energy >= upgradeCost) {
+                energy -= upgradeCost;
+                energyPerClick++;
+                upgradeCost += 10;
+                upgradeButton.textContent = `Upgrade Power (Cost: ${upgradeCost})`;
+                updateEnergyDisplay();
+            } else {
+                alert("Not enough energy to upgrade!");
+            }
+        });
+
+        // Начальная загрузка
+        loadLeaderboard();
+        updateEnergyDisplay();
+        updateLevelDisplay();
+    </script>
+</body>
+</html>
